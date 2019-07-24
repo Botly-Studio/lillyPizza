@@ -4,4 +4,4 @@
 -tools /usr/share/arduino/tools-builder \
 -libraries /usr/share/arduino/libraries \
 -fqbn arduino:avr:LilyPadUSB \
--build-path /opt/BS-localAgent/build /opt/BS-localAgent/sketch/sketch.ino
+-build-path /opt/lillyPizza/build /opt/lillyPizza/sketch/sketch.ino
