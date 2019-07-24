@@ -1,14 +1,32 @@
 #!/usr/bin/env node
-//Raspizza JS remote Arduino uploader
+/*
+ _       _ _ _       ______ _                  
+| |     (_) | |     (_____ (_)                 
+| |      _| | |_   _ _____) ) _____ _____ ____ 
+| |     | | | | | | |  ____/ (___  |___  ) _  |
+| |_____| | | | |_| | |    | |/ __/ / __( ( | |
+|_______)_|_|_|\__  |_|    |_(_____|_____)_||_|
+              (____/                                   
+
+*/
 
 //Web interaction library
 const express    = require('express')
     , cors       = require('cors')
     , bodyParser = require('body-parser')
     , fs         = require('fs')
-    , path       = require('path');
-    
+    , path       = require('path')
+    , config = require('./config');  
+
 const app        = express()
+
+var log = function(msg){
+    if(config.log){
+        console.log(msg);
+    }
+}
+
+log("[Info] : Logging enabled")
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -16,7 +34,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 var basepath    = path.resolve(__dirname);
 
 var corsOptions = {
-    origin: 'http://botly-studio.fr',
+    origin: config.origin,
     optionsSuccessStatus: 200
 }
 
@@ -65,10 +83,11 @@ pageEnd = '</p>' +
 
 
 
-var port = 3000;
+var port = config.port;
 page += port + pageEnd;
 
 app.listen(port);
+log("[Info] App listenning request from " + config.origin + " on port :" + port);
 
 app.get('/', (req, res) => res.send(page))
 
@@ -81,47 +100,39 @@ app.post('/', cors(corsOptions), function (req, res) {
 app.options('/compile', cors(corsOptions)) // enable pre-flight request for OPTIONS request
 
 app.post('/compile', cors(corsOptions), function (req, res) {
-    console.log(req);
+    log('[Data] Request : ' + req);
     //return;
     var base64encoded = req.body.data;
     var code = Blink;
-    console.log("Base 64 Code : " + base64encoded);
+    log("[Data] Base 64 Code : " + base64encoded);
     if (base64encoded != undefined) {
         code = Buffer.from(base64encoded, 'base64').toString('utf8');
         try { fs.writeFileSync(basepath + '/sketch/sketch.ino', code, 'utf-8'); }
         catch (e) {
-            console.log('Failed to save the file : ');
-            console.log(e); res.end("fail");
+            log('[Error] Failed to save the file : ');
+            log(e); res.end("fail");
             return;
         }
     }else{
-        console.log('Nothing received ...')
-        console.log(req);
+        log('[Error] Nothing received :')
+        log(req);
         res.end("fail");
         return;
     }
 
-    console.log("UTF-8 Code : " + code);
+    log("[Data] UTF-8 Code : " + code);
     Builder.compile(res);
     //res.end(code);
 });
 
 
-
-
-
 /************************************************
-*
-*
 *					Builder
-*
-*
-*
 *************************************************
 */
 
 var Builder = {};
-const executablePath = "/opt/lillyPizza/compile.sh";
+const executablePath = config.compileScriptPath;
 
 
 Builder.compile = function (res) {
@@ -130,25 +141,27 @@ Builder.compile = function (res) {
     var child = require('child_process').exec;
 
     child(script, function (err, data) {
-        console.log('Error : ' + err);
+        log('[Error] ' + err);
         var hex = undefined;
         try {
             hex = fs.readFileSync(basepath + '/build/sketch.ino.hex');
-            console.log('COMPILED HEX : ' + hex);
+            log('[Data] COMPILED HEX : ' + hex);
         } catch (error) {
             res.end("fail");
-            console.log(err);
+            log('[Error] ' + err);
             return;
         }
 
         if (err) {
             res.end("fail");
-            console.log('Fail : ' + err);
+            log('[Error] Fail : ' + err);
         }
         else {
             var base64Code = Buffer.from(hex, 'hex').toString('base64')
-            console.log('COMPILED Base64 : ' + base64Code)
+            log('[Data] COMPILED Base64 : ' + base64Code)
             res.end(base64Code);
         }
     });
 }
+
+
