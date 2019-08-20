@@ -2,7 +2,7 @@
 const config = {
   port: 3000,
   log : false,
-  origin : 'http://botly-studio.fr',
+  origin : 'http://localhost:8080/',
   compileScriptPath : "/opt/lillyPizza/compile.sh"
 };
 
