@@ -2,7 +2,7 @@
 const config = {
   port: 3000,
   log : false,
-  origin : 'http://localhost:8081',
+  origin : 'http://localhost:8080',
   compileScriptPath : "/opt/lillyPizza/compile.sh"
 };
 
