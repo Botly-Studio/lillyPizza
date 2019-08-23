@@ -34,10 +34,20 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 var basepath = path.resolve(__dirname);
 
+
+var whitelist = config.origins;
 var corsOptions = {
-    origin: config.origin,
+    origin: function(origin, callback) {
+        if (whitelist.indexOf(origin) !== -1) {
+            callback(null, true)
+        } else {
+            callback(new Error('Not allowed by CORS'))
+        }
+    },
     optionsSuccessStatus: 200
 }
+
+
 
 var Blink = "void setup() {pinMode(13, OUTPUT);}void loop() {digitalWrite(13, HIGH);delay(1000);digitalWrite(13, LOW);delay(1000);}"
 
@@ -83,7 +93,7 @@ var port = config.port;
 page += port + pageEnd;
 
 app.listen(port);
-log("[Info] App listenning request from " + config.origin + " on port :" + port);
+log("[Info] App listenning request from " + config.origins + " on port :" + port);
 
 app.get('/', (req, res) => res.send(page))
 
