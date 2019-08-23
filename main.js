@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /*
  _       _ _ _       ______ _                  
 | |     (_) | |     (_____ (_)                 
@@ -11,17 +12,17 @@
 */
 
 //Web interaction library
-const express    = require('express')
-    , cors       = require('cors')
-    , bodyParser = require('body-parser')
-    , fs         = require('fs')
-    , path       = require('path')
-    , config = require('./config');  
+const express = require('express'),
+    cors = require('cors'),
+    bodyParser = require('body-parser'),
+    fs = require('fs'),
+    path = require('path'),
+    config = require('./config');
 
-const app        = express()
+const app = express()
 
-var log = function(msg){
-    if(config.log){
+var log = function(msg) {
+    if (config.log) {
         console.log(msg);
     }
 }
@@ -31,7 +32,7 @@ log("[Info] : Logging enabled")
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-var basepath    = path.resolve(__dirname);
+var basepath = path.resolve(__dirname);
 
 var corsOptions = {
     origin: config.origin,
@@ -72,11 +73,6 @@ page = '<!DOCTYPE html>' +
     '      <p> Listenning on port : ';
 
 pageEnd = '</p>' +
-    '      <form>' +
-    '       <input name="code" type="hidden" value="' + Blink + '">' +
-    '       <input name="type" type="hidden" value="compile">' +
-    '       <button type="submit" formaction="/compile" formmethod="post">Upload Blink.ino</button>' +
-    '      </form>' +
     '    </div>' +
     '  </body>' +
     '</html>';
@@ -93,13 +89,13 @@ app.get('/', (req, res) => res.send(page))
 
 app.options('/', cors(corsOptions)) // enable pre-flight request for OPTIONS request
 
-app.post('/', cors(corsOptions), function (req, res) {
+app.post('/', cors(corsOptions), function(req, res) {
     res.end("OK");
 });
 
 app.options('/compile', cors(corsOptions)) // enable pre-flight request for OPTIONS request
 
-app.post('/compile', cors(corsOptions), function (req, res) {
+app.post('/compile', cors(corsOptions), function(req, res) {
     log('[Data] Request : ' + req);
     //return;
     var base64encoded = req.body.data;
@@ -107,13 +103,13 @@ app.post('/compile', cors(corsOptions), function (req, res) {
     log("[Data] Base 64 Code : " + base64encoded);
     if (base64encoded != undefined) {
         code = Buffer.from(base64encoded, 'base64').toString('utf8');
-        try { fs.writeFileSync(basepath + '/sketch/sketch.ino', code, 'utf-8'); }
-        catch (e) {
+        try { fs.writeFileSync(basepath + '/sketch/sketch.ino', code, 'utf-8'); } catch (e) {
             log('[Error] Failed to save the file : ');
-            log(e); res.end("fail");
+            log(e);
+            res.end("fail");
             return;
         }
-    }else{
+    } else {
         log('[Error] Nothing received :')
         log(req);
         res.end("fail");
@@ -127,20 +123,20 @@ app.post('/compile', cors(corsOptions), function (req, res) {
 
 
 /************************************************
-*					Builder
-*************************************************
-*/
+ *					Builder
+ *************************************************
+ */
 
 var Builder = {};
 const executablePath = config.compileScriptPath;
 
 
-Builder.compile = function (res) {
+Builder.compile = function(res) {
     script = executablePath;
 
     var child = require('child_process').exec;
 
-    child(script, function (err, data) {
+    child(script, function(err, data) {
         log('[Error] ' + err);
         var hex = undefined;
         try {
@@ -155,13 +151,10 @@ Builder.compile = function (res) {
         if (err) {
             res.end("fail");
             log('[Error] Fail : ' + err);
-        }
-        else {
+        } else {
             var base64Code = Buffer.from(hex, 'hex').toString('base64')
             log('[Data] COMPILED Base64 : ' + base64Code)
             res.end(base64Code);
         }
     });
 }
-
-
