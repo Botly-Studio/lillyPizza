@@ -126,16 +126,15 @@ app.post('/compile', cors(corsOptions), function(req, res) {
         return;
     }
 
-    log("[Data] UTF-8 Code : " + code);
+    log("[Data] UTF-8 Code :\n" + code);
     Builder.compile(res);
     //res.end(code);
 });
 
 
-/************************************************
- *					Builder
- *************************************************
- */
+/*************************************************
+		     Builder
+ *************************************************/
 
 var Builder = {};
 const executablePath = config.compileScriptPath;
@@ -147,14 +146,15 @@ Builder.compile = function(res) {
     var child = require('child_process').exec;
 
     child(script, function(err, data) {
-        log('[Error] ' + err);
+        log('[OUT] : ' + data);
+	log('[ERROR] : ' + err);
         var hex = undefined;
         try {
-            hex = fs.readFileSync(basepath + '/build/sketch.ino.hex');
+            hex = fs.readFileSync(config.compiledSketchPath);
             log('[Data] COMPILED HEX : ' + hex);
         } catch (error) {
             res.end("fail");
-            log('[Error] ' + err);
+            log('[Error] ' + error);
             return;
         }
 
