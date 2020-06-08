@@ -17,9 +17,14 @@ const express = require('express'),
     bodyParser = require('body-parser'),
     fs = require('fs'),
     path = require('path'),
-    config = require('./config');
+    config = require('./config'),
+	https = require('https');
 
-const app = express()
+var privateKey  = fs.readFileSync('sslcert/server.key', 'utf8');
+var certificate = fs.readFileSync('sslcert/server.crt', 'utf8');
+
+var credentials = {key: privateKey, cert: certificate};
+var app = express();
 
 var log = function(msg) {
     if (config.log) {
@@ -31,6 +36,10 @@ log("[Info] : Logging enabled")
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
+
+var httpsServer = https.createServer(credentials, app);
+
+httpsServer.listen(8443);
 
 var basepath = path.resolve(__dirname);
 
