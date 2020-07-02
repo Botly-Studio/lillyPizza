@@ -157,31 +157,31 @@ Builder.compile = function(res) {
 
     out.on('close', (code) => {
       console.log(`child process exited with code ${code}`);
+
+      var hex = undefined;
+
+      if(!err){
+          try {
+              hex = fs.readFileSync(config.compiledSketchPath);
+              //log('[Data] COMPILED HEX : ' + hex);
+          } catch (error) {
+          err = true;
+              res.end("fail");
+              log('[Error] ' + error);
+              return;
+          }
+  
+      }else {
+          res.end("fail");
+          log('[Error] Fail : ' + err);
+      }
+  
+      if(!err){
+          log('[SUCCESS]');
+          var base64Code = Buffer.from(hex, 'hex').toString('base64')
+          //log('[Data] COMPILED Base64 : ' + base64Code)
+          res.end(base64Code);
+      }
     });
-
-    var hex = undefined;
-
-    if(!err){
-        try {
-            hex = fs.readFileSync(config.compiledSketchPath);
-            //log('[Data] COMPILED HEX : ' + hex);
-        } catch (error) {
-	    err = true;
-            res.end("fail");
-            log('[Error] ' + error);
-            return;
-        }
-
-    }else {
-        res.end("fail");
-        log('[Error] Fail : ' + err);
-    }
-
-    if(!err){
-        log('[SUCCESS]');
-        var base64Code = Buffer.from(hex, 'hex').toString('base64')
-        //log('[Data] COMPILED Base64 : ' + base64Code)
-        res.end(base64Code);
-    }
 }
 
