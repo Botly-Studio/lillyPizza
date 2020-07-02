@@ -1,3 +1,4 @@
+PATH=$PATH:/opt/compiler
 arduino-cli compile \
 --fqbn arduino:avr:LilyPadUSB \
---build-path /opt/lillyPizza/build sketch
+--build-path /opt/lillypizza/build sketch

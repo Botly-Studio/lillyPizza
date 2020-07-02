@@ -104,11 +104,11 @@ app.post('/', cors(corsOptions), function(req, res) {
 app.options('/compile', cors(corsOptions)) // enable pre-flight request for OPTIONS request
 
 app.post('/compile', cors(corsOptions), function(req, res) {
-    log('[Data] Request : ' + req);
+    log('[Data] new Request : ' + req);
     //return;
     var base64encoded = req.body.data;
     var code = Blink;
-    log("[Data] Base 64 Code : " + base64encoded);
+    //log("[Data] Base 64 Code : " + base64encoded);
     if (base64encoded != undefined) {
         code = Buffer.from(base64encoded, 'base64').toString('utf8');
         try { fs.writeFileSync(basepath + '/sketch/sketch.ino', code, 'utf-8'); } catch (e) {
@@ -124,7 +124,7 @@ app.post('/compile', cors(corsOptions), function(req, res) {
         return;
     }
 
-    log("[Data] UTF-8 Code :\n" + code);
+    //log("[Data] UTF-8 Code :\n" + code);
     Builder.compile(res);
     //res.end(code);
 });
@@ -141,28 +141,47 @@ const executablePath = config.compileScriptPath;
 Builder.compile = function(res) {
     script = executablePath;
 
-    var child = require('child_process').exec;
+    const { spawn } = require('child_process');
 
-    child(script, function(err, data) {
-        log('[OUT] : ' + data);
-	log('[ERROR] : ' + err);
-        var hex = undefined;
+    var out = spawn(script);
+    var err = false;
+
+    out.stdout.on('data', (data) => {
+        console.log('compile script out : ${data}');
+    });
+
+    out.stderr.on('data', (data) => {
+      console.error(`stderr: ${data}`);
+      err = true;
+    });
+
+    out.on('close', (code) => {
+      console.log(`child process exited with code ${code}`);
+    });
+
+    var hex = undefined;
+
+    if(!err){
         try {
             hex = fs.readFileSync(config.compiledSketchPath);
-            log('[Data] COMPILED HEX : ' + hex);
+            //log('[Data] COMPILED HEX : ' + hex);
         } catch (error) {
+	    err = true;
             res.end("fail");
             log('[Error] ' + error);
             return;
         }
 
-        if (err) {
-            res.end("fail");
-            log('[Error] Fail : ' + err);
-        } else {
-            var base64Code = Buffer.from(hex, 'hex').toString('base64')
-            log('[Data] COMPILED Base64 : ' + base64Code)
-            res.end(base64Code);
-        }
-    });
+    }else {
+        res.end("fail");
+        log('[Error] Fail : ' + err);
+    }
+
+    if(!err){
+        log('[SUCCESS]');
+        var base64Code = Buffer.from(hex, 'hex').toString('base64')
+        //log('[Data] COMPILED Base64 : ' + base64Code)
+        res.end(base64Code);
+    }
 }
+

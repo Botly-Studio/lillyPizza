@@ -8,7 +8,7 @@ const config = {
         'http://localhost:8080'
     ],
     compileScriptPath: "/opt/lillypizza/compile.sh",
-    compiledSketchPath: "/opt/lillypizza/sketch/build/arduino.avr.LilyPadUSB/sketch.ino.hex"
+    compiledSketchPath: "/opt/lillypizza/build/sketch.ino.hex"
 };
 
 module.exports = config;
